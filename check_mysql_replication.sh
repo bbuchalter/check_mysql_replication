@@ -12,9 +12,11 @@ REPL_DIFFERENCE=1
 usage1="
 Description: Checks master and slave log positions as well as slave status.
 
-Usage: $0 -H <slave_host> -u replication_user -p password
+Usage: $0 -H <slave_host>
 
-NOTE: Script assumes it is run from the master server."
+NOTE: Script assumes:
+ * it is run from the master server
+ * ~/.my.cnf is configured with account which has privileges to SHOW MASTER STATUS and SHOW MASTER STATUS.
 
 if [ -z $1 ]
 then
@@ -24,14 +26,6 @@ fi
 
 while true; do
     case "$1" in
-        -u)
-            REPLUSERNAME=$2
-            shift
-            ;;
-        -p)
-            REPLPASSWD=$2
-            shift
-            ;;
         '')
             echo $usage1;
             exit $STATE_UNKNOWN
@@ -56,11 +50,11 @@ while true; do
 done
 
 
-iSlave_1_position=`mysql -h $SLAVEIP_1 -u $REPLUSERNAME -p$REPLPASSWD -e "show slave status" | grep bin | cut -f7`
+iSlave_1_position=`mysql -h $SLAVEIP_1 -e "show slave status" | grep bin | cut -f7`
 
-iSlave_1_status=`mysql -h $SLAVEIP_1 -u $REPLUSERNAME -p$REPLPASSWD -e "show slave status" | grep bin | cut -f1`
+iSlave_1_status=`mysql -h $SLAVEIP_1 -e "show slave status" | grep bin | cut -f1`
 
-iMaster=`mysql -u $REPLUSERNAME -p$REPLPASSWD -e "show master status" | grep bin | cut -f2`
+iMaster=`mysql -e "show master status" | grep bin | cut -f2`
 
 iDiff_1=`expr $iMaster - $iSlave_1_position`
 
