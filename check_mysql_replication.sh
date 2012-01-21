@@ -15,7 +15,7 @@ Usage: $0 -H <slave_host>
 
 NOTE: Script assumes:
  * it is run from the master server
- * ~/.my.cnf is configured with account which has privileges to SHOW MASTER STATUS and SHOW MASTER STATUS.
+ * ~/.my.cnf is configured with account which has privileges to SHOW MASTER STATUS and SHOW SLAVE STATUS.
 "
 
 if [ -z $1 ]
