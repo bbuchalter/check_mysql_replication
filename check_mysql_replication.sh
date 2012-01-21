@@ -20,18 +20,18 @@ NOTE: Script assumes:
 
 if [ -z $1 ]
 then
-echo "$usage1"
-exit $STATE_UNKNOWN
+    echo "$usage1"
+    exit $STATE_UNKNOWN
 fi
 
-while true; do
+while :; do
     case "$1" in
         '')
-            echo $usage1;
+            echo $usage1
             exit $STATE_UNKNOWN
             ;;
         -h)
-            echo $usage1;
+            echo $usage1
             exit $STATE_UNKNOWN
             ;;
         -H)
@@ -40,7 +40,7 @@ while true; do
             ;;
         *) 
             echo "Unknown argument: $1"
-            echo $usage1;
+            echo $usage1
             exit $STATE_UNKNOWN
             ;;
     esac
@@ -50,18 +50,18 @@ while true; do
 done
 
 slave_connection_check=`mysql -h $SLAVEIP_1 -e "show slave status" 2>&1`
-if [[ $slave_connetion_check == *ERROR* ]]
+if [[ $slave_connetion_check = *ERROR* ]]
 then
-echo "Error reading slave: $slave_connection_check"
-exit $STATE_UNKNOWN
+    echo "Error reading slave: $slave_connection_check"
+    exit $STATE_UNKNOWN
 fi
 
 
 master_connection_check=`mysql -e "show master status" 2>&1`
-if [[ $master_connection_check == *ERROR* ]];
+if [[ $master_connection_check = *ERROR* ]]
 then
-echo "Error reading master: $master_connection_check"
-exit $STATE_UNKNOWN
+    echo "Error reading master: $master_connection_check"
+    exit $STATE_UNKNOWN
 fi
 
 iSlave_1_position=`mysql -h $SLAVEIP_1 -e "show slave status" | grep bin | cut -f7`
@@ -71,13 +71,13 @@ iDiff_1=`expr $iMaster_position - $iSlave_1_position`
 
 if [ $iDiff_1 -gt $REPL_DIFFERENCE ]
 then
-echo "CRITICAL - master log $iMaster - slave log $iSlave_1 - log positions differ by more than $CRITICAL_VALUE"
-exit $STATE_CRITICAL
+    echo "CRITICAL - master log $iMaster - slave log $iSlave_1 - log positions differ by more than $CRITICAL_VALUE"
+    exit $STATE_CRITICAL
 elif [ "$iSlave_1_status" != "Waiting for master to send event" ]
 then
-echo "CRITICAL - slave status is '$iSlave_1_status'"
-exit $STATE_CRITICAL
+    echo "CRITICAL - slave status is '$iSlave_1_status'"
+    exit $STATE_CRITICAL
 else
-echo "OK - log positions match ($iMaster_position == $iSlave_1_position), slave status = '$iSlave_1_status'"
-exit $STATE_OK
+    echo "OK - log positions match ($iMaster_position = $iSlave_1_position), slave status = '$iSlave_1_status'"
+    exit $STATE_OK
 fi
