@@ -50,24 +50,33 @@ while :; do
     test -n "$1" || break
 done
 
-slave_connection_check=`mysql -h $SLAVEHOST -e "show slave status" 2>&1`
-if [[ "$slave_connection_check" = "*ERROR*" ]]
+slave_status_file=`mktemp`
+slave_error_file=`mktemp`
+slave_connection_check=`mysql -h $SLAVEHOST -e "show slave status" >$slave_status_file 2>$slave_error_file`
+if [[ $? -ne 0 ]]
 then
-    echo "Error reading slave: $slave_connection_check"
+    echo "Error reading slave: $slave_error_file"
     exit $STATE_UNKNOWN
 fi
+rm -f $slave_error_file
 
-
-master_connection_check=`mysql -e "show master status" 2>&1`
-if [[ "$master_connection_check" = "*ERROR*" ]]
+master_status_file=`mktemp`
+master_error_file=`mktemp`
+master_connection_check=`mysql -e "show master status" >$master_status_file 2>$master_error_file`
+if [[ $? -ne 0 ]]
 then
-    echo "Error reading master: $master_connection_check"
+    echo "Error reading master: $master_error_file"
     exit $STATE_UNKNOWN
 fi
+rm -f $master_error_file
 
-iSlave_1_position=`mysql -h $SLAVEHOST -e "show slave status" | grep bin | cut -f7`
-iSlave_1_status=`mysql -h $SLAVEHOST -e "show slave status" | grep bin | cut -f1`
-iMaster_position=`mysql -e "show master status" | grep bin | cut -f2`
+iSlave_1_position=`grep bin $slave_status_file | cut -f7`
+iSlave_1_status=`grep bin $slave_status_file | cut -f1`
+rm -f $slave_status_file
+
+iMaster_position=`grep bin $master_status_file | cut -f2`
+rm -f $master_status_file
+
 iDiff_1=`expr $iMaster_position - $iSlave_1_position`
 
 if [ $iDiff_1 -gt $REPL_DIFFERENCE ]
