@@ -8,39 +8,40 @@ STATE_UNKNOWN=3
 STATE_DEPENDENT=4
 REPL_DIFFERENCE=1
 
-usage1="
+usage="
 Description: Checks master and slave log positions as well as slave status.
 
 Usage: $0 -H <slave_host>
 
-NOTE: Script assumes:
+Script assumes:
  * it is run from the master server
- * ~/.my.cnf is configured with account which has privileges to SHOW MASTER STATUS and SHOW MASTER STATUS.
+ * ~/.my.cnf is configured with account which has privileges to SHOW MASTER STATUS and SHOW SLAVE STATUS.
+ * English locale
 "
 
 if [ -z $1 ]
 then
-echo "$usage1"
-exit $STATE_UNKNOWN
+    echo "$usage"
+    exit $STATE_UNKNOWN
 fi
 
-while true; do
+while :; do
     case "$1" in
         '')
-            echo $usage1;
+            echo $usage
             exit $STATE_UNKNOWN
             ;;
         -h)
-            echo $usage1;
+            echo $usage
             exit $STATE_UNKNOWN
             ;;
         -H)
-            SLAVEIP_1=$2
+            SLAVEHOST=$2
             shift
             ;;
         *) 
             echo "Unknown argument: $1"
-            echo $usage1;
+            echo $usage
             exit $STATE_UNKNOWN
             ;;
     esac
@@ -49,35 +50,44 @@ while true; do
     test -n "$1" || break
 done
 
-slave_connection_check=`mysql -h $SLAVEIP_1 -e "show slave status" 2>&1`
-if [[ $slave_connetion_check == *ERROR* ]]
+slave_status_file=`mktemp`
+slave_error_file=`mktemp`
+slave_connection_check=`mysql -h $SLAVEHOST -e "show slave status" >$slave_status_file 2>$slave_error_file`
+if [[ $? -ne 0 ]]
 then
-echo "Error reading slave: $slave_connection_check"
-exit $STATE_UNKNOWN
+    echo "Error reading slave: $slave_error_file"
+    exit $STATE_UNKNOWN
 fi
+rm -f $slave_error_file
 
-
-master_connection_check=`mysql -e "show master status" 2>&1`
-if [[ $master_connection_check == *ERROR* ]];
+master_status_file=`mktemp`
+master_error_file=`mktemp`
+master_connection_check=`mysql -e "show master status" >$master_status_file 2>$master_error_file`
+if [[ $? -ne 0 ]]
 then
-echo "Error reading master: $master_connection_check"
-exit $STATE_UNKNOWN
+    echo "Error reading master: $master_error_file"
+    exit $STATE_UNKNOWN
 fi
+rm -f $master_error_file
 
-iSlave_1_position=`mysql -h $SLAVEIP_1 -e "show slave status" | grep bin | cut -f7`
-iSlave_1_status=`mysql -h $SLAVEIP_1 -e "show slave status" | grep bin | cut -f1`
-iMaster_position=`mysql -e "show master status" | grep bin | cut -f2`
+iSlave_1_position=`grep bin $slave_status_file | cut -f7`
+iSlave_1_status=`grep bin $slave_status_file | cut -f1`
+rm -f $slave_status_file
+
+iMaster_position=`grep bin $master_status_file | cut -f2`
+rm -f $master_status_file
+
 iDiff_1=`expr $iMaster_position - $iSlave_1_position`
 
 if [ $iDiff_1 -gt $REPL_DIFFERENCE ]
 then
-echo "CRITICAL - master log $iMaster - slave log $iSlave_1 - log positions differ by more than $CRITICAL_VALUE"
-exit $STATE_CRITICAL
+    echo "CRITICAL - master log $iMaster - slave log $iSlave_1 - log positions differ by more than $CRITICAL_VALUE"
+    exit $STATE_CRITICAL
 elif [ "$iSlave_1_status" != "Waiting for master to send event" ]
 then
-echo "CRITICAL - slave status is '$iSlave_1_status'"
-exit $STATE_CRITICAL
+    echo "CRITICAL - slave status is '$iSlave_1_status'"
+    exit $STATE_CRITICAL
 else
-echo "OK - log positions match ($iMaster_position == $iSlave_1_position), slave status = '$iSlave_1_status'"
-exit $STATE_OK
+    echo "OK - log positions match ($iMaster_position = $iSlave_1_position), slave status = '$iSlave_1_status'"
+    exit $STATE_OK
 fi
