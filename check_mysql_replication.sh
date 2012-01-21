@@ -50,7 +50,7 @@ while :; do
 done
 
 slave_connection_check=`mysql -h $SLAVEIP_1 -e "show slave status" 2>&1`
-if [[ $slave_connetion_check = *ERROR* ]]
+if [[ "$slave_connection_check" = "*ERROR*" ]]
 then
     echo "Error reading slave: $slave_connection_check"
     exit $STATE_UNKNOWN
@@ -58,7 +58,7 @@ fi
 
 
 master_connection_check=`mysql -e "show master status" 2>&1`
-if [[ $master_connection_check = *ERROR* ]]
+if [[ "$master_connection_check" = "*ERROR*" ]]
 then
     echo "Error reading master: $master_connection_check"
     exit $STATE_UNKNOWN
