@@ -8,39 +8,40 @@ STATE_UNKNOWN=3
 STATE_DEPENDENT=4
 REPL_DIFFERENCE=1
 
-usage1="
+usage="
 Description: Checks master and slave log positions as well as slave status.
 
 Usage: $0 -H <slave_host>
 
-NOTE: Script assumes:
+Script assumes:
  * it is run from the master server
  * ~/.my.cnf is configured with account which has privileges to SHOW MASTER STATUS and SHOW SLAVE STATUS.
+ * English locale
 "
 
 if [ -z $1 ]
 then
-    echo "$usage1"
+    echo "$usage"
     exit $STATE_UNKNOWN
 fi
 
 while :; do
     case "$1" in
         '')
-            echo $usage1
+            echo $usage
             exit $STATE_UNKNOWN
             ;;
         -h)
-            echo $usage1
+            echo $usage
             exit $STATE_UNKNOWN
             ;;
         -H)
-            SLAVEIP_1=$2
+            SLAVEHOST=$2
             shift
             ;;
         *) 
             echo "Unknown argument: $1"
-            echo $usage1
+            echo $usage
             exit $STATE_UNKNOWN
             ;;
     esac
@@ -49,7 +50,7 @@ while :; do
     test -n "$1" || break
 done
 
-slave_connection_check=`mysql -h $SLAVEIP_1 -e "show slave status" 2>&1`
+slave_connection_check=`mysql -h $SLAVEHOST -e "show slave status" 2>&1`
 if [[ "$slave_connection_check" = "*ERROR*" ]]
 then
     echo "Error reading slave: $slave_connection_check"
@@ -64,8 +65,8 @@ then
     exit $STATE_UNKNOWN
 fi
 
-iSlave_1_position=`mysql -h $SLAVEIP_1 -e "show slave status" | grep bin | cut -f7`
-iSlave_1_status=`mysql -h $SLAVEIP_1 -e "show slave status" | grep bin | cut -f1`
+iSlave_1_position=`mysql -h $SLAVEHOST -e "show slave status" | grep bin | cut -f7`
+iSlave_1_status=`mysql -h $SLAVEHOST -e "show slave status" | grep bin | cut -f1`
 iMaster_position=`mysql -e "show master status" | grep bin | cut -f2`
 iDiff_1=`expr $iMaster_position - $iSlave_1_position`
 
