@@ -1,6 +1,6 @@
 Description: Checks master and slave log positions as well as slave status.
 
-Usage: $0 -H <slave_host>
+Usage: ./check_mysql_replication.sh -H <slave_host>
 
 Script assumes:
  * it is run from the master server
