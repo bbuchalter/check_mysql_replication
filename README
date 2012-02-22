@@ -1,0 +1,10 @@
+Description: Checks master and slave log positions as well as slave status.
+
+Usage: $0 -H <slave_host>
+
+Script assumes:
+ * it is run from the master server
+ * ~/.my.cnf is configured with account which has privileges to SHOW MASTER STATUS and SHOW SLAVE STATUS.
+ * English locale
+
+More info at http://blog.endpoint.com/2012/01/mysql-replication-monitoring-on-ubuntu.html
