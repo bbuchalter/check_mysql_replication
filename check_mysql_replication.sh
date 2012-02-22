@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#TODO
+# tmp files not cleaned up automatically
+
 # Nagios alert status
 STATE_OK=0
 STATE_WARNING=1
@@ -17,6 +20,8 @@ Script assumes:
  * it is run from the master server
  * ~/.my.cnf is configured with account which has privileges to SHOW MASTER STATUS and SHOW SLAVE STATUS.
  * English locale
+
+More info at http://blog.endpoint.com/2012/01/mysql-replication-monitoring-on-ubuntu.html
 "
 
 if [ -z $1 ]
@@ -55,7 +60,7 @@ slave_error_file=`mktemp`
 slave_connection_check=`mysql -h $SLAVEHOST -e "show slave status" >$slave_status_file 2>$slave_error_file`
 if [[ $? -ne 0 ]]
 then
-    echo "Error reading slave: $slave_error_file"
+    echo "Error reading slave: $(cat $slave_error_file)"
     exit $STATE_UNKNOWN
 fi
 rm -f $slave_error_file
@@ -65,7 +70,7 @@ master_error_file=`mktemp`
 master_connection_check=`mysql -e "show master status" >$master_status_file 2>$master_error_file`
 if [[ $? -ne 0 ]]
 then
-    echo "Error reading master: $master_error_file"
+    echo "Error reading master: $(cat $master_error_file)"
     exit $STATE_UNKNOWN
 fi
 rm -f $master_error_file
