@@ -61,9 +61,9 @@ slave_connection_check=`mysql -h $SLAVEHOST -e "show slave status" >$slave_statu
 if [[ $? -ne 0 ]]
 then
     echo "Error reading slave: $(cat $slave_error_file)"
+    rm -f $slave_error_file
     exit $STATE_UNKNOWN
 fi
-rm -f $slave_error_file
 
 master_status_file=`mktemp`
 master_error_file=`mktemp`
@@ -71,9 +71,9 @@ master_connection_check=`mysql -e "show master status" >$master_status_file 2>$m
 if [[ $? -ne 0 ]]
 then
     echo "Error reading master: $(cat $master_error_file)"
+    rm -f $master_error_file
     exit $STATE_UNKNOWN
 fi
-rm -f $master_error_file
 
 iSlave_1_position=`grep bin $slave_status_file | cut -f7`
 iSlave_1_status=`grep bin $slave_status_file | cut -f1`
