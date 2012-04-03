@@ -62,7 +62,7 @@ if [[ $? -ne 0 ]]
 then
     echo "Error reading slave: $(cat $slave_error_file)"
     rm -f $slave_error_file
-    exit $STATE_UNKNOWN
+    exit $STATE_CRITICAL
 fi
 
 master_status_file=`mktemp`
