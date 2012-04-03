@@ -96,3 +96,5 @@ else
     echo "OK - log positions match ($iMaster_position = $iSlave_1_position), slave status = '$iSlave_1_status'"
     exit $STATE_OK
 fi
+
+exit $STATE_CRITICAL
