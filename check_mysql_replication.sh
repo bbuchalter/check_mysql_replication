@@ -72,7 +72,7 @@ if [[ $? -ne 0 ]]
 then
     echo "Error reading master: $(cat $master_error_file)"
     rm -f $master_error_file
-    exit $STATE_UNKNOWN
+    exit $STATE_CRITICAL
 fi
 
 iSlave_1_position=`grep bin $slave_status_file | cut -f7`
