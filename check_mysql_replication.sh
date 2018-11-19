@@ -86,7 +86,7 @@ iDiff_1=`expr $iMaster_position - $iSlave_1_position`
 
 if [ $iDiff_1 -gt $REPL_DIFFERENCE ]
 then
-    echo "CRITICAL - master log $iMaster - slave log $iSlave_1 - log positions differ by more than $CRITICAL_VALUE"
+    echo "CRITICAL - master log $iMaster_position - slave log $iSlave_1_position - log positions differ by more than $REPL_DIFFERENCE"
     exit $STATE_CRITICAL
 elif [ "$iSlave_1_status" != "Waiting for master to send event" ]
 then
